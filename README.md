@@ -14,6 +14,7 @@ The script uses [Playwright](https://playwright.dev/) and a headless browser to
 
 Example
 ```csv
+// timestamp, usage_in_litres
 2024-05-08T15:00:00.000,3
 2024-05-08T16:00:00.000,3
 2024-05-08T17:00:00.000,8
