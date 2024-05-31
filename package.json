@@ -9,6 +9,10 @@
   "description": "",
   "devDependencies": {
     "@playwright/test": "^1.44.1",
+    "@types/dotenv": "^8.2.0",
     "@types/node": "^20.12.13"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
   }
 }
