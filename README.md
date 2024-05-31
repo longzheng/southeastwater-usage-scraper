@@ -23,8 +23,8 @@ Example
 
 ### How to use
 
-[!CAUTION]
-This is a proof of concept, is not thoroughly tested and may break if the South East Water website changes. Use at your own risk.
+> [!CAUTION]
+> This is a proof of concept, is not thoroughly tested and may break if the South East Water website changes. Use at your own risk.
 
 1. Install dependencies `npm install`
 2. Install Playwright browsers `npx playwright install --with-deps`
