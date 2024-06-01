@@ -1,6 +1,6 @@
 import { test, expect, Page, Response } from "@playwright/test";
-import { UsageData, convertReadingToCsv } from "../helpers/usageDataSchema";
-import { appendToFile } from "../helpers/file";
+import { UsageSchema, parseAuraResponse } from "../helpers/api";
+import { appendToFile, resetFile } from "../helpers/file";
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -98,15 +98,17 @@ test("extract usage", async ({ page }) => {
     }
 
     // response from the aura call
-    const responseJson = await currentAuraResponse.json();
+    const usageData = await parseAuraResponse(currentAuraResponse);
 
-    // get the usage data
-    const returnValueString = responseJson.actions[0].returnValue;
-    const returnValueJson = JSON.parse(returnValueString);
-    const usageDataJson = JSON.parse(returnValueJson.usage)[0] as UsageData;
+    // write headers
+    if (i === 0) {
+      resetFile("usage.csv");
+
+      appendToFile("usage.csv", "Timestamp,Date,Hour,MeasurementLitres");
+    }
 
     // write the usage data to a file
-    appendToFile("usage.csv", usageDataJson.Readings.map((reading) => convertReadingToCsv(reading)).join("\n"));
+    appendToFile("usage.csv", usageData.Readings.map((reading) => convertReadingToCsv(reading)).join("\n"));
 
     // reset the aura response
     currentAuraResponse = null;
@@ -126,4 +128,19 @@ async function waitForSpinners(page: Page) {
 
 async function getDateText(page: Page) {
   return await page.locator("lightning-formatted-text").textContent();
+}
+
+function convertReadingToCsv(
+  reading: UsageSchema["Readings"][number]
+): string {
+  // trim the last Z character since the timezone is local
+  const localDateString = reading.Date.substring(0, reading.Date.length - 1);
+
+  const localDate = new Date(localDateString);
+
+  // convert date to yyyy-mm-dd
+  const date = localDate.toISOString().split("T")[0];
+  const hour = localDate.getHours();
+
+  return `${localDateString},${date},${hour},${reading.Measurement}`;
 }
