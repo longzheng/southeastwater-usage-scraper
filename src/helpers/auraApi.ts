@@ -48,3 +48,15 @@ export function parseAuraResponseJson(json: unknown): UsageSchema {
 
     return usageData[0];
 }
+
+// the API returns ISO8601 date strings with the UTC timezone even though they're local times
+// use the new Date() function convert the date string to a local date
+export function convertReadingDateToLocalDate(
+    reading: UsageSchema["Readings"][number],
+): { dateString: string; date: Date } {
+    const localDateString = reading.Date.substring(0, reading.Date.length - 1);
+
+    const localDate = new Date(localDateString);
+
+    return { dateString: localDateString, date: localDate };
+}

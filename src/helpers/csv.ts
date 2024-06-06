@@ -1,7 +1,7 @@
-import { UsageSchema } from "./auraApi";
+import { UsageSchema, convertReadingDateToLocalDate } from "./auraApi";
 import { resetFile, appendToFile } from "./file";
 
-const csvFilename = "usage.csv";
+export const csvFilename = "usage.csv";
 
 export async function resetCsv() {
     // write headers
@@ -20,14 +20,11 @@ export async function writeCsvUsageData(usageData: UsageSchema) {
 }
 
 function convertReadingToCsv(reading: UsageSchema["Readings"][number]): string {
-    // trim the last Z character since the timezone is local
-    const localDateString = reading.Date.substring(0, reading.Date.length - 1);
-
-    const localDate = new Date(localDateString);
+    const localDate = convertReadingDateToLocalDate(reading);
 
     // convert date to yyyy-mm-dd
-    const date = localDate.toISOString().split("T")[0];
-    const hour = localDate.getHours();
+    const dateString = localDate.date.toISOString().split("T")[0];
+    const hourString = localDate.date.getHours();
 
-    return `${localDateString},${date},${hour},${reading.Measurement}`;
+    return `${localDate.dateString},${dateString},${hourString},${reading.Measurement}`;
 }
