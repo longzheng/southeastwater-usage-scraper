@@ -14,11 +14,11 @@ The script uses [Playwright](https://playwright.dev/) and a headless browser to
 
 Example
 ```csv
-// timestamp, usage_in_litres
-2024-05-08T15:00:00.000,3
-2024-05-08T16:00:00.000,3
-2024-05-08T17:00:00.000,8
-2024-05-08T18:00:00.000,5
+Timestamp,Date,Hour,MeasurementLitres
+2024-06-05T00:00:00.000,2024-06-04,0,4
+2024-06-05T01:00:00.000,2024-06-04,1,3
+2024-06-05T02:00:00.000,2024-06-04,2,4
+2024-06-05T03:00:00.000,2024-06-04,3,4
 ```
 
 ### How to use
@@ -27,6 +27,5 @@ Example
 > This is a proof of concept, is not thoroughly tested and may break if the South East Water website changes. Use at your own risk.
 
 1. Install dependencies `npm install`
-2. Install Playwright browsers `npx playwright install --with-deps`
-3. Copy `.env.example` to `.env` and fill in South East Water account email and password
-4. Run test `npx playwright test` (or `npx playwright test --headed` to see what's going on)
+1. Copy `.env.example` to `.env` and fill in South East Water account email and password
+1. Run `npm run start`

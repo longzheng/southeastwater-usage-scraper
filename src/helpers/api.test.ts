@@ -1,4 +1,4 @@
-import { parseAuraResponseJson } from "./api";
+import { parseAuraResponseJson } from "./auraApi";
 
 describe("parseAuraResponseJson", () => {
     void it("parses API response", () => {

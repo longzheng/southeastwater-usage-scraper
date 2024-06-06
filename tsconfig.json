@@ -7,5 +7,9 @@
     "strict": true,
     "skipLibCheck": true
   },
+  "include": [
+    "src/",
+    "tests/"
+  ],
   "$schema": "https://json.schemastore.org/tsconfig"
 }

@@ -1,32 +1,22 @@
-import { test, Page, Response } from "@playwright/test";
-import { UsageSchema, parseAuraResponse } from "../helpers/api";
-import { appendToFile, resetFile } from "../helpers/file";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { chromium, devices, Page, Response } from "playwright";
+import { UsageSchema, parseAuraResponse } from "./auraApi";
 
 let currentAuraResponse: Response | null = null;
 
-const email = process.env.EMAIL;
-
-if (!email) {
-    throw new Error("EMAIL environment variable is not set");
-}
-
-const password = process.env.PASSWORD;
-
-if (!password) {
-    throw new Error("EMAIL environment variable is not set");
-}
-
-const daysToExtract = Number.parseInt(process.env.DAYS_TO_EXTRACT);
-
-if (!daysToExtract) {
-    throw new Error("DAYS_TO_EXTRACT environment variable is not set");
-}
-
-test("extract usage", async ({ page }) => {
-    test.setTimeout(0);
+export async function getSouthEastWaterUsage({
+    email,
+    password,
+    daysToExtract,
+    onUsageData,
+}: {
+    email: string;
+    password: string;
+    daysToExtract: number;
+    onUsageData: (usageData: UsageSchema) => Promise<void>;
+}) {
+    const browser = await chromium.launch();
+    const context = await browser.newContext(devices["Desktop Chrome"]);
+    const page = await context.newPage();
 
     page.on("response", (response) => {
         const responseUrl = response.url();
@@ -41,6 +31,7 @@ test("extract usage", async ({ page }) => {
     });
 
     // login
+    console.log("Logging into my.southeastwater.com.au");
     await page.goto("https://my.southeastwater.com.au/s/");
     await page.getByLabel("*Email*").click();
     await page.getByLabel("*Email*").fill(email);
@@ -49,6 +40,7 @@ test("extract usage", async ({ page }) => {
     await page.getByRole("button", { name: "Sign in" }).click();
 
     // switch to usage page
+    console.log("Navigating to water usage details");
     await page.getByRole("menuitem", { name: "Usage" }).click();
     await page.getByText("Water usage detail").waitFor({ state: "visible" });
 
@@ -59,6 +51,7 @@ test("extract usage", async ({ page }) => {
     await page.waitForTimeout(2000);
 
     // change to daily data
+    console.log("Navigating to daily water usage");
     await page.getByRole("button", { name: "Daily" }).click();
 
     await waitForSpinners(page);
@@ -73,6 +66,7 @@ test("extract usage", async ({ page }) => {
 
     // go to the newest date available
     // loop to click the "next date" button until it is no longer on the page
+    console.log("Navigating to the newest date");
     for (;;) {
         await waitForSpinners(page);
 
@@ -89,10 +83,15 @@ test("extract usage", async ({ page }) => {
     }
 
     // process current date and go backwards in the last 30 days
+    console.log(`Extracting ${daysToExtract} days of data`);
+    const result: UsageSchema[] = [];
     for (let i = 0; i < daysToExtract; i++) {
         // get current date
         const currentDateText = await getDateText(page);
         const currentDate = new Date(currentDateText ?? "");
+        console.log(
+            `Processing ${currentDate.toDateString()} - ${i + 1} of ${daysToExtract}`,
+        );
 
         if (Number.isNaN(currentDate.getTime())) {
             throw new Error("Date is not valid");
@@ -105,23 +104,9 @@ test("extract usage", async ({ page }) => {
         // response from the aura call
         const usageData = await parseAuraResponse(currentAuraResponse);
 
-        // write headers
-        if (i === 0) {
-            await resetFile("usage.csv");
+        result.push(usageData);
 
-            await appendToFile(
-                "usage.csv",
-                "Timestamp,Date,Hour,MeasurementLitres",
-            );
-        }
-
-        // write the usage data to a file
-        await appendToFile(
-            "usage.csv",
-            usageData.Readings.map((reading) =>
-                convertReadingToCsv(reading),
-            ).join("\n"),
-        );
+        await onUsageData(usageData);
 
         // reset the aura response
         currentAuraResponse = null;
@@ -130,7 +115,12 @@ test("extract usage", async ({ page }) => {
         await page.locator('button[name="dateLeft"]').click();
         await waitForSpinners(page);
     }
-});
+
+    await context.close();
+    await browser.close();
+
+    return result;
+}
 
 async function waitForSpinners(page: Page) {
     const allSpinners = await page.locator("lightning-spinner").all();
@@ -141,17 +131,4 @@ async function waitForSpinners(page: Page) {
 
 async function getDateText(page: Page) {
     return await page.locator("lightning-formatted-text").textContent();
-}
-
-function convertReadingToCsv(reading: UsageSchema["Readings"][number]): string {
-    // trim the last Z character since the timezone is local
-    const localDateString = reading.Date.substring(0, reading.Date.length - 1);
-
-    const localDate = new Date(localDateString);
-
-    // convert date to yyyy-mm-dd
-    const date = localDate.toISOString().split("T")[0];
-    const hour = localDate.getHours();
-
-    return `${localDateString},${date},${hour},${reading.Measurement}`;
 }
