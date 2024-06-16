@@ -1,5 +1,7 @@
-import { chromium, devices, Page, Response } from "playwright";
-import { UsageSchema, parseAuraResponse } from "./auraApi";
+import type { Page, Response } from 'playwright';
+import { chromium, devices } from 'playwright';
+import type { UsageSchema } from './auraApi';
+import { parseAuraResponse } from './auraApi';
 
 let currentAuraResponse: Response | null = null;
 
@@ -15,15 +17,15 @@ export async function getSouthEastWaterUsage({
     onUsageData: (usageData: UsageSchema) => Promise<void>;
 }) {
     const browser = await chromium.launch();
-    const context = await browser.newContext(devices["Desktop Chrome"]);
+    const context = await browser.newContext(devices['Desktop Chrome']);
     const page = await context.newPage();
 
-    page.on("response", (response) => {
+    page.on('response', (response) => {
         const responseUrl = response.url();
         if (
-            responseUrl.includes("/s/sfsites/aura") &&
+            responseUrl.includes('/s/sfsites/aura') &&
             responseUrl.includes(
-                "other.cm_AccountBillingUsageAURA.getDigitalMeterUsage=1",
+                'other.cm_AccountBillingUsageAURA.getDigitalMeterUsage=1',
             )
         ) {
             currentAuraResponse = response;
@@ -31,18 +33,18 @@ export async function getSouthEastWaterUsage({
     });
 
     // login
-    console.log("Logging into my.southeastwater.com.au");
-    await page.goto("https://my.southeastwater.com.au/s/");
-    await page.getByLabel("*Email*").click();
-    await page.getByLabel("*Email*").fill(email);
-    await page.getByLabel("*Password*").click();
-    await page.getByLabel("*Password*").fill(password);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    console.log('Logging into my.southeastwater.com.au');
+    await page.goto('https://my.southeastwater.com.au/s/');
+    await page.getByLabel('*Email*').click();
+    await page.getByLabel('*Email*').fill(email);
+    await page.getByLabel('*Password*').click();
+    await page.getByLabel('*Password*').fill(password);
+    await page.getByRole('button', { name: 'Sign in' }).click();
 
     // switch to usage page
-    console.log("Navigating to water usage details");
-    await page.getByRole("menuitem", { name: "Usage" }).click();
-    await page.getByText("Water usage detail").waitFor({ state: "visible" });
+    console.log('Navigating to water usage details');
+    await page.getByRole('menuitem', { name: 'Usage' }).click();
+    await page.getByText('Water usage detail').waitFor({ state: 'visible' });
 
     // wait for the loader spinner to disappear
     await waitForSpinners(page);
@@ -51,8 +53,8 @@ export async function getSouthEastWaterUsage({
     await page.waitForTimeout(2000);
 
     // change to daily data
-    console.log("Navigating to daily water usage");
-    await page.getByRole("button", { name: "Daily" }).click();
+    console.log('Navigating to daily water usage');
+    await page.getByRole('button', { name: 'Daily' }).click();
 
     await waitForSpinners(page);
 
@@ -60,13 +62,13 @@ export async function getSouthEastWaterUsage({
     await page.waitForTimeout(2000);
 
     // assert that we are looking at daily data
-    if ((await getDateText(page))?.includes(" - ")) {
-        throw new Error("date has range, is not daily");
+    if ((await getDateText(page))?.includes(' - ')) {
+        throw new Error('date has range, is not daily');
     }
 
     // go to the newest date available
     // loop to click the "next date" button until it is no longer on the page
-    console.log("Navigating to the newest date");
+    console.log('Navigating to the newest date');
     for (;;) {
         await waitForSpinners(page);
 
@@ -88,17 +90,17 @@ export async function getSouthEastWaterUsage({
     for (let i = 0; i < daysToExtract; i++) {
         // get current date
         const currentDateText = await getDateText(page);
-        const currentDate = new Date(currentDateText ?? "");
+        const currentDate = new Date(currentDateText ?? '');
         console.log(
             `Processing ${currentDate.toDateString()} - ${i + 1} of ${daysToExtract}`,
         );
 
         if (Number.isNaN(currentDate.getTime())) {
-            throw new Error("Date is not valid");
+            throw new Error('Date is not valid');
         }
 
         if (!currentAuraResponse) {
-            throw new Error("No aura response found");
+            throw new Error('No aura response found');
         }
 
         // response from the aura call
@@ -123,12 +125,12 @@ export async function getSouthEastWaterUsage({
 }
 
 async function waitForSpinners(page: Page) {
-    const allSpinners = await page.locator("lightning-spinner").all();
+    const allSpinners = await page.locator('lightning-spinner').all();
     await Promise.all(
-        allSpinners.map((spinner) => spinner.waitFor({ state: "hidden" })),
+        allSpinners.map((spinner) => spinner.waitFor({ state: 'hidden' })),
     );
 }
 
 async function getDateText(page: Page) {
-    return await page.locator("lightning-formatted-text").textContent();
+    return await page.locator('lightning-formatted-text').textContent();
 }

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "lint": "npx eslint .",
+    "lint": "tsc --noEmit && npx eslint .",
     "start": "ts-node --transpileOnly --files src/index.ts",
     "test": "jest"
   },
@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@tsconfig/strictest": "^2.0.5",
     "@types/dotenv": "^8.2.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.13",
