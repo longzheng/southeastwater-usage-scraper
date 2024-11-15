@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "tsc --noEmit && npx eslint .",
-    "start": "ts-node --transpileOnly --files src/index.ts",
+    "start": "tsx src/index.ts",
     "test": "jest"
   },
   "keywords": [],
@@ -30,7 +30,7 @@
     "@playwright/test": "^1.44.1",
     "dotenv": "^16.4.5",
     "playwright": "^1.44.1",
-    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.4.5",
     "zod": "^3.23.8"
   }
