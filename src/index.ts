@@ -69,8 +69,12 @@ void (async () => {
             await writeCsvUsageData(usageData);
 
             if (influxWriteApi) {
-                await writeInfluxUsageData(influxWriteApi, usageData);
+                void writeInfluxUsageData(influxWriteApi, usageData);
             }
         },
     });
+
+    if (influxWriteApi) {
+        await influxWriteApi.close();
+    }
 })();

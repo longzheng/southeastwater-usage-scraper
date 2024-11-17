@@ -18,10 +18,7 @@ export function getInfluxWriteApi({
     return writeApi;
 }
 
-export async function writeInfluxUsageData(
-    writeApi: WriteApi,
-    usageData: UsageData,
-) {
+export function writeInfluxUsageData(writeApi: WriteApi, usageData: UsageData) {
     const points = usageData.map((usage) => {
         return new Point('water')
             .timestamp(usage.date)
@@ -29,5 +26,4 @@ export async function writeInfluxUsageData(
     });
 
     writeApi.writePoints(points);
-    await writeApi.flush();
 }
