@@ -17,7 +17,7 @@ export async function getSouthEastWaterUsage({
     daysToExtract: number;
     onUsageData: (usageData: UsageData) => Promise<void>;
 }) {
-    const browser = await chromium.launch({ headless: false });
+    const browser = await chromium.launch();
     const context = await browser.newContext(devices['Desktop Chrome']);
     const page = await context.newPage();
 
