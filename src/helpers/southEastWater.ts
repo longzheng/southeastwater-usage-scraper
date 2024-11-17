@@ -1,7 +1,7 @@
 import type { Page, Response } from 'playwright';
 import { chromium, devices } from 'playwright';
-import type { UsageSchema } from './auraApi';
-import { parseAuraResponse } from './auraApi';
+import type { UsageSchema } from './auraApi.js';
+import { parseAuraResponse } from './auraApi.js';
 
 let currentAuraResponse: Response | null = null;
 

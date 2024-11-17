@@ -1,4 +1,4 @@
-import { parseAuraResponseJson } from './auraApi';
+import { parseAuraResponseJson } from './auraApi.js';
 import { describe, it, expect } from 'vitest';
 
 describe('parseAuraResponseJson', () => {

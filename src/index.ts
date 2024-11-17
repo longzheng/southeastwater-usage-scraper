@@ -1,8 +1,8 @@
 import 'dotenv/config';
-import { getSouthEastWaterUsage } from './helpers/southEastWater';
-import { csvFilename, resetCsv, writeCsvUsageData } from './helpers/csv';
+import { getSouthEastWaterUsage } from './helpers/southEastWater.js';
+import { csvFilename, resetCsv, writeCsvUsageData } from './helpers/csv.js';
 import type { WriteApi } from '@influxdata/influxdb-client';
-import { getInfluxWriteApi, writeInfluxUsageData } from './helpers/influx';
+import { getInfluxWriteApi, writeInfluxUsageData } from './helpers/influx.js';
 
 const email = process.env.EMAIL;
 
