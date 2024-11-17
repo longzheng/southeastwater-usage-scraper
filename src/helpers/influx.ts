@@ -1,7 +1,6 @@
 import type { WriteApi } from '@influxdata/influxdb-client';
 import { InfluxDB, Point } from '@influxdata/influxdb-client';
-import type { UsageSchema } from './auraApi.js';
-import { convertReadingDateToLocalDate } from './auraApi.js';
+import type { UsageData } from './auraApi.js';
 
 export function getInfluxWriteApi({
     url,
@@ -21,12 +20,12 @@ export function getInfluxWriteApi({
 
 export async function writeInfluxUsageData(
     writeApi: WriteApi,
-    usageData: UsageSchema,
+    usageData: UsageData,
 ) {
-    const points = usageData.Readings.map((reading) => {
+    const points = usageData.map((usage) => {
         return new Point('water')
-            .timestamp(convertReadingDateToLocalDate(reading).date)
-            .floatField('litres', reading.Measurement);
+            .timestamp(usage.date)
+            .floatField('litres', usage.measurement);
     });
 
     writeApi.writePoints(points);

@@ -6,66 +6,93 @@ export const auraSchema = z.object({
         z.object({
             id: z.string(),
             state: z.string(),
-            returnValue: z.string(),
+            returnValue: z.object({
+                returnValue: z.array(
+                    z.object({
+                        apiDate: z.string(),
+                        hasBlockedData: z.boolean(),
+                        message: z.string(),
+                        readings: z.array(z.number()),
+                        resolution: z.string(),
+                        serialNo: z.string(),
+                        status: z.number(),
+                    }),
+                ),
+            }),
             error: z.array(z.unknown()),
         }),
     ),
 });
 
-export const returnValueSchema = z.object({
-    usage: z.string(),
-});
+type AuraSchema = z.infer<typeof auraSchema>;
 
-export const usageSchema = z.array(
-    z.object({
-        PeriodType: z.literal('hourly'),
-        DateTo: z.string(),
-        DateFrom: z.string(),
-        Readings: z.array(
-            z.object({ Measurement: z.number(), Date: z.string() }),
-        ),
-        Total: z.number(),
-        SerialNumber: z.string(),
-    }),
-);
-
-export type UsageSchema = z.infer<typeof usageSchema>[number];
+export type UsageData = {
+    date: Date;
+    localIsoString: string;
+    localDateString: string;
+    hour: number;
+    measurement: number;
+}[];
 
 export async function parseAuraResponse(
     response: Response,
-): Promise<UsageSchema> {
+): Promise<UsageData> {
     const responseJson = (await response.json()) as unknown;
 
     return parseAuraResponseJson(responseJson);
 }
 
-export function parseAuraResponseJson(json: unknown): UsageSchema {
-    const auraData = auraSchema.parse(json);
-    const returnValueString = auraData.actions[0]?.returnValue;
+export function parseAuraResponseJson(json: unknown): UsageData {
+    const data = auraSchema.parse(json);
 
-    if (!returnValueString) {
-        throw new Error('No returnValue found in Aura API response');
+    if (data.actions.length !== 1) {
+        throw new Error('Expected one action');
     }
 
-    const returnValue = returnValueSchema.parse(JSON.parse(returnValueString));
-    const usageString = returnValue.usage;
-    const usageData = usageSchema.parse(JSON.parse(usageString));
+    const firstAction = data.actions[0]!;
 
-    if (!usageData[0]) {
-        throw new Error('No usage data found in Aura API response');
+    if (firstAction.returnValue.returnValue.length !== 1) {
+        throw new Error('Expected one return value');
     }
 
-    return usageData[0];
+    const firstReturnValue = firstAction.returnValue.returnValue[0]!;
+
+    if (firstReturnValue.resolution !== 'hourly') {
+        throw new Error('Expected hourly resolution');
+    }
+
+    if (firstReturnValue.readings.length !== 24) {
+        throw new Error('Expected 24 readings');
+    }
+
+    const usageData = convertUsageData(firstReturnValue);
+
+    return usageData;
 }
 
-// the API returns ISO8601 date strings with the UTC timezone even though they're local times
-// use the new Date() function convert the date string to a local date
-export function convertReadingDateToLocalDate(
-    reading: UsageSchema['Readings'][number],
-): { dateString: string; date: Date } {
-    const localDateString = reading.Date.substring(0, reading.Date.length - 1);
+function convertUsageData(
+    returnValue: AuraSchema['actions'][number]['returnValue']['returnValue'][number],
+): UsageData {
+    // get just the date part of the string
+    // the API returns ISO8601 date strings with the UTC timezone even though they're local dates
+    // "apiDate": "2024-11-16T00:00:00+00:00",
+    const localDateString = returnValue.apiDate.split('T')[0]!;
 
-    const localDate = new Date(localDateString);
+    const results: UsageData = [];
 
-    return { dateString: localDateString, date: localDate };
+    for (let i = 0; i < returnValue.readings.length; i++) {
+        const hour = i.toString().padStart(2, '0');
+        const localIsoString = `${localDateString}T${hour}:00:00`;
+        const localDate = new Date(`${localDateString}T${hour}:00:00`);
+
+        results.push({
+            date: localDate,
+            localIsoString,
+            localDateString,
+            hour: i,
+            measurement: returnValue.readings[i]!,
+        });
+    }
+
+    return results;
 }
