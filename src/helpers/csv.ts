@@ -1,6 +1,6 @@
-import type { UsageSchema } from './auraApi';
-import { convertReadingDateToLocalDate } from './auraApi';
-import { resetFile, appendToFile } from './file';
+import type { UsageSchema } from './auraApi.js';
+import { convertReadingDateToLocalDate } from './auraApi.js';
+import { resetFile, appendToFile } from './file.js';
 
 export const csvFilename = 'usage.csv';
 

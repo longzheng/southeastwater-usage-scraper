@@ -2,6 +2,7 @@
   "name": "southeastwater-usage-scraper",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "lint": "tsc --noEmit && npx eslint .",
     "start": "tsx src/index.ts",

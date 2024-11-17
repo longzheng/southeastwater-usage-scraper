@@ -1,7 +1,7 @@
 import type { WriteApi } from '@influxdata/influxdb-client';
 import { InfluxDB, Point } from '@influxdata/influxdb-client';
-import type { UsageSchema } from './auraApi';
-import { convertReadingDateToLocalDate } from './auraApi';
+import type { UsageSchema } from './auraApi.js';
+import { convertReadingDateToLocalDate } from './auraApi.js';
 
 export function getInfluxWriteApi({
     url,
