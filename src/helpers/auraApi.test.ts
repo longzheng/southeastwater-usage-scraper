@@ -56,7 +56,7 @@ describe('parseAuraResponseJson', () => {
         "app": "siteforce:communityApp",
         "contextPath": "/s/sfsites",
         "pathPrefix": "",
-        "fwuid": "dzlEdDRVZ1RsVXFtVkduczVYNVVfZ1ZuNVJhc1EyaHA2ZTdMUkxCNEw5Y1E5LjMyMC4y",
+        "fwuid": "abcdefgh123456789",
         "mlr": 1,
         "coos": 1,
         "loaded": {
