@@ -12,6 +12,6 @@
         // prevent unreachable code being auto deleted
         "allowUnreachableCode": true
     },
-    "include": ["src/", "playwright.config.ts", "tests/"],
+    "include": ["src/", "playwright.config.ts", "vitest.config.ts", "tests/"],
     "$schema": "https://json.schemastore.org/tsconfig"
 }
